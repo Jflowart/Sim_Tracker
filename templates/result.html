@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Result &middot; SIM Tracker{% endblock %}
+{% block content %}
+  <div class="toolbar">
+    <h1>Result</h1>
+    <a class="btn secondary" href="{{ url_for('lookup') }}">&larr; New lookup</a>
+  </div>
+
+  <section class="card">
+    <dl class="meta-grid">
+      <div class="meta"><dt>Number</dt><dd>{{ metadata.formatted.international }}</dd></div>
+      <div class="meta"><dt>E.164</dt><dd>{{ metadata.e164 }}</dd></div>
+      <div class="meta"><dt>Country</dt><dd>{{ metadata.display_location or "Unknown" }}</dd></div>
+      <div class="meta"><dt>Region code</dt><dd>{{ metadata.region or "Unknown" }}</dd></div>
+      <div class="meta"><dt>Carrier</dt><dd>{{ metadata.carrier }}</dd></div>
+      <div class="meta"><dt>Line type</dt><dd>{{ metadata.number_type }}</dd></div>
+      <div class="meta"><dt>Timezone</dt><dd>{{ metadata.timezones | join(", ") or "Unknown" }}</dd></div>
+      <div class="meta"><dt>National format</dt><dd>{{ metadata.formatted.national }}</dd></div>
+    </dl>
+  </section>
+
+  <section class="card">
+    <div class="toolbar">
+      <h2 style="margin:0">Map</h2>
+      <span class="muted">Provider: {{ geocoder_name }}</span>
+    </div>
+    {% if map_url %}
+      <iframe class="map-frame" src="{{ map_url }}" title="Country-level map"></iframe>
+      <p class="muted">
+        The highlighted area is the country/region returned by geocoding. It is
+        <strong>not</strong> the location of the phone or its owner.
+      </p>
+    {% else %}
+      <p class="muted">{{ geo_error or "Map unavailable." }}</p>
+    {% endif %}
+  </section>
+
+  <p class="notice">{{ disclaimer }}</p>
+{% endblock %}

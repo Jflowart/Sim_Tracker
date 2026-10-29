@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block title %}History &middot; SIM Tracker{% endblock %}
+{% block content %}
+  <div class="toolbar">
+    <div>
+      <h1>History</h1>
+      <p class="muted">{{ total }} record(s) match your filters.</p>
+    </div>
+    <a class="btn secondary" href="{{ url_for('history_export', **filters) }}">Export CSV</a>
+  </div>
+
+  <section class="card">
+    <form method="get" action="{{ url_for('history') }}">
+      <div class="row">
+        <div style="flex:2 1 240px">
+          <label for="q">Search</label>
+          <input id="q" name="q" type="search" value="{{ filters.q }}" placeholder="number, country, carrier">
+        </div>
+        <div>
+          <label for="country">Country</label>
+          <select id="country" name="country">
+            <option value="">All</option>
+            {% for c in options.countries %}
+            <option value="{{ c }}" {{ 'selected' if c == filters.country }}>{{ c }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label for="carrier">Carrier</label>
+          <select id="carrier" name="carrier">
+            <option value="">All</option>
+            {% for c in options.carriers %}
+            <option value="{{ c }}" {{ 'selected' if c == filters.carrier }}>{{ c }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label for="number_type">Line type</label>
+          <select id="number_type" name="number_type">
+            <option value="">All</option>
+            {% for t in options.number_types %}
+            <option value="{{ t }}" {{ 'selected' if t == filters.number_type }}>{{ t }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label for="since">Since (UTC)</label>
+          <input id="since" name="since" type="date" value="{{ filters.since[:10] if filters.since }}">
+        </div>
+        <div style="flex:0 0 auto">
+          <button type="submit">Filter</button>
+        </div>
+        <div style="flex:0 0 auto">
+          <a class="btn secondary" href="{{ url_for('history') }}">Reset</a>
+        </div>
+      </div>
+    </form>
+  </section>
+
+  <section class="card">
+    {% if rows %}
+    <form method="post" action="{{ url_for('history') }}"
+          onsubmit="return confirm('Delete the selected record(s)?');">
+      <input type="hidden" name="action" value="delete">
+      <div class="toolbar">
+        <span class="muted">Select rows to delete.</span>
+        <div style="display:flex;gap:8px">
+          <button class="danger small" type="submit">Delete selected</button>
+        </div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th style="width:28px"></th>
+            <th>When (UTC)</th>
+            <th>Number</th>
+            <th>Country</th>
+            <th>Carrier</th>
+            <th>Type</th>
+            <th>Source</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in rows %}
+          <tr>
+            <td><input type="checkbox" name="ids" value="{{ row.id }}"></td>
+            <td>{{ row.created_at }}</td>
+            <td>{{ row.e164 }}</td>
+            <td>{{ row.country }}{% if row.location and row.location != row.country %} ({{ row.location }}){% endif %}</td>
+            <td>{{ row.carrier }}</td>
+            <td>{{ row.number_type }}</td>
+            <td>{{ row.source }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </form>
+
+    {% if pages > 1 %}
+    <div class="pagination">
+      {% if page > 1 %}
+        <a class="btn secondary small" href="{{ url_for('history', page=page-1, **filters) }}">&larr; Prev</a>
+      {% endif %}
+      <span class="muted">Page {{ page }} of {{ pages }}</span>
+      {% if page < pages %}
+        <a class="btn secondary small" href="{{ url_for('history', page=page+1, **filters) }}">Next &rarr;</a>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <form method="post" action="{{ url_for('history') }}" style="margin-top:16px"
+          onsubmit="return confirm('Clear the entire history? This cannot be undone.');">
+      <input type="hidden" name="action" value="clear">
+      <button class="danger small" type="submit">Clear all history</button>
+    </form>
+    {% else %}
+    <p class="muted">No records match your filters.</p>
+    {% endif %}
+  </section>
+
+  <p class="notice">{{ disclaimer }}</p>
+{% endblock %}

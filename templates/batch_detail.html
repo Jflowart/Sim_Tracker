@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Batch {{ batch.id[:8] }} &middot; SIM Tracker{% endblock %}
+{% block content %}
+  <div class="toolbar">
+    <div>
+      <h1>Batch {{ batch.id[:8] }}</h1>
+      <p class="muted">{{ batch.source_name }} &middot; column <code>{{ batch.column }}</code></p>
+    </div>
+    <a class="btn secondary" href="{{ url_for('batch') }}">&larr; All batches</a>
+  </div>
+
+  <section class="card" id="status-card"
+           data-status-url="{{ url_for('batch_status', batch_id=batch.id) }}"
+           data-status="{{ batch.status }}">
+    <div class="stats">
+      <div class="stat"><div class="value"><span class="badge {{ batch.status }}">{{ batch.status }}</span></div><div class="label">Status</div></div>
+      <div class="stat"><div class="value">{{ batch.valid }}</div><div class="label">Valid</div></div>
+      <div class="stat"><div class="value">{{ batch.invalid }}</div><div class="label">Invalid</div></div>
+      <div class="stat"><div class="value">{{ batch.total }}</div><div class="label">Rows processed</div></div>
+    </div>
+    {% if batch.error %}
+      <div class="error" style="margin-top:16px"><strong>Error:</strong> {{ batch.error }}</div>
+    {% endif %}
+    <div class="row" style="margin-top:16px">
+      {% if batch.status == 'done' %}
+        <a class="btn" href="{{ url_for('batch_download', batch_id=batch.id) }}">Download enriched CSV</a>
+        {% if batch.errors_path %}
+          <a class="btn secondary" href="{{ url_for('batch_errors', batch_id=batch.id) }}">Download errors CSV</a>
+        {% endif %}
+      {% elif batch.status in ['pending', 'running'] %}
+        <span class="muted">Processing in the background. This page refreshes automatically.</span>
+      {% endif %}
+    </div>
+  </section>
+
+  {% if preview %}
+  <section class="card">
+    <h2>Preview (first {{ preview|length }} rows)</h2>
+    <div style="overflow-x:auto">
+      <table>
+        <thead>
+          <tr>{% for key in preview[0].keys() %}<th>{{ key }}</th>{% endfor %}</tr>
+        </thead>
+        <tbody>
+          {% for row in preview %}
+          <tr>{% for value in row.values() %}<td>{{ value }}</td>{% endfor %}</tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+  {% endif %}
+
+  {% if batch.status in ['pending', 'running'] %}
+  <script>
+    const card = document.getElementById('status-card');
+    const url = card.dataset.statusUrl;
+    const timer = setInterval(async () => {
+      try {
+        const response = await fetch(url, { headers: { 'Accept': 'application/json' } });
+        if (!response.ok) return;
+        const data = await response.json();
+        if (data.status === 'done' || data.status === 'failed') {
+          clearInterval(timer);
+          window.location.reload();
+        }
+      } catch (err) { /* keep polling */ }
+    }, 2500);
+  </script>
+  {% endif %}
+
+  <p class="notice">{{ disclaimer }}</p>
+{% endblock %}

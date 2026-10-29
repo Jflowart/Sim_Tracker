@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}Dashboard &middot; SIM Tracker{% endblock %}
+{% block content %}
+  <div class="toolbar">
+    <div>
+      <h1>Dashboard</h1>
+      <p class="muted">Overview of lookups stored on this machine.</p>
+    </div>
+    <a class="btn" href="{{ url_for('lookup') }}">New lookup</a>
+  </div>
+
+  <section class="card">
+    <div class="stats">
+      <div class="stat"><div class="value">{{ stats.total }}</div><div class="label">Total lookups</div></div>
+      <div class="stat"><div class="value">{{ stats.unique_numbers }}</div><div class="label">Unique numbers</div></div>
+      <div class="stat"><div class="value">{{ stats.countries }}</div><div class="label">Countries</div></div>
+      <div class="stat"><div class="value">{{ stats.today }}</div><div class="label">Today (UTC)</div></div>
+    </div>
+    <p class="muted" style="margin-top:14px">
+      {% if stats.last_seen %}
+        First lookup: {{ stats.first_seen }} &middot; last lookup: {{ stats.last_seen }}
+      {% else %}
+        No lookups recorded yet.
+      {% endif %}
+    </p>
+  </section>
+
+  <div class="grid-2">
+    <section class="card">
+      <h2>Top countries</h2>
+      {% if stats.by_country %}
+      <table>
+        <thead><tr><th>Country</th><th>Lookups</th></tr></thead>
+        <tbody>
+          {% for row in stats.by_country %}
+          <tr><td>{{ row.country }}</td><td>{{ row.n }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}<p class="muted">No data.</p>{% endif %}
+    </section>
+
+    <section class="card">
+      <h2>Top carriers</h2>
+      {% if stats.by_carrier %}
+      <table>
+        <thead><tr><th>Carrier</th><th>Lookups</th></tr></thead>
+        <tbody>
+          {% for row in stats.by_carrier %}
+          <tr><td>{{ row.carrier }}</td><td>{{ row.n }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}<p class="muted">No data.</p>{% endif %}
+    </section>
+  </div>
+
+  <section class="card">
+    <div class="toolbar">
+      <h2 style="margin:0">Quick actions</h2>
+      <span class="muted">Geocoder: {{ geocoder_name }}</span>
+    </div>
+    <div class="row">
+      <a class="btn secondary" href="{{ url_for('lookup') }}">Look up one number</a>
+      <a class="btn secondary" href="{{ url_for('batch') }}">Upload a CSV batch</a>
+      <a class="btn secondary" href="{{ url_for('history') }}">Browse history</a>
+      <a class="btn secondary" href="{{ url_for('history_export') }}">Export history CSV</a>
+    </div>
+  </section>
+
+  <p class="notice">{{ disclaimer }}</p>
+{% endblock %}

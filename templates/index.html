@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Lookup &middot; SIM Tracker{% endblock %}
+{% block content %}
+  <h1>Look up a number</h1>
+  <p class="muted">Returns country, region, carrier, line type and timezone. It cannot locate a device.</p>
+
+  {% if error %}<div class="error">{{ error }}</div>{% endif %}
+
+  <section class="card">
+    <form method="post" action="{{ url_for('lookup') }}">
+      <div class="row">
+        <div>
+          <label for="number">Phone number (international format)</label>
+          <input id="number" name="number" type="text" placeholder="+233 24 123 4567"
+                 value="{{ number }}" autocomplete="off" required>
+        </div>
+        <div style="flex:0 0 auto">
+          <button type="submit">Look up</button>
+        </div>
+      </div>
+      <label style="display:flex;gap:9px;align-items:flex-start;font-weight:400;margin-top:14px">
+        <input type="checkbox" name="consent" style="margin-top:3px" required>
+        <span>I own this number or have explicit permission to investigate it.</span>
+      </label>
+    </form>
+  </section>
+
+  <p class="notice">{{ disclaimer }}</p>
+{% endblock %}

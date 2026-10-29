@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Batch &middot; SIM Tracker{% endblock %}
+{% block content %}
+  <div class="toolbar">
+    <div>
+      <h1>Batch enrichment</h1>
+      <p class="muted">Upload a CSV of numbers and download enriched country-level metadata.</p>
+    </div>
+  </div>
+
+  <section class="card">
+    <h2>Upload a CSV</h2>
+    <form method="post" action="{{ url_for('batch') }}" enctype="multipart/form-data">
+      <div class="row">
+        <div style="flex:2 1 240px">
+          <label for="file">CSV file</label>
+          <input id="file" name="file" type="file" accept=".csv,text/csv" required>
+        </div>
+        <div>
+          <label for="column">Number column</label>
+          <input id="column" name="column" type="text" value="number">
+        </div>
+        <div style="flex:0 0 auto">
+          <button type="submit">Upload &amp; process</button>
+        </div>
+      </div>
+      <p class="muted" style="margin-top:10px">
+        Up to {{ batch_max_rows }} rows per file, UTF-8 CSV.
+        Include a header row; default number column is <code>number</code>.
+      </p>
+      <label style="display:flex;gap:9px;align-items:flex-start;font-weight:400">
+        <input type="checkbox" name="consent" style="margin-top:3px" required>
+        <span>I have permission to process these numbers, and they contain no personal data beyond phone numbers.</span>
+      </label>
+    </form>
+  </section>
+
+  <section class="card">
+    <h2>Recent batches</h2>
+    {% if batches %}
+    <table>
+      <thead>
+        <tr>
+          <th>Created (UTC)</th><th>File</th><th>Status</th>
+          <th>Valid</th><th>Invalid</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for b in batches %}
+        <tr>
+          <td>{{ b.created_at }}</td>
+          <td>{{ b.source_name }}</td>
+          <td><span class="badge {{ b.status }}">{{ b.status }}</span></td>
+          <td>{{ b.valid }}</td>
+          <td>{{ b.invalid }}</td>
+          <td><a href="{{ url_for('batch_detail', batch_id=b.id) }}">Open</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <p class="muted" style="margin-top:12px">
+      Completed batches older than {{ batch_retention_days }} days are removed automatically.
+    </p>
+    {% else %}
+    <p class="muted">No batches yet.</p>
+    {% endif %}
+  </section>
+
+  <p class="notice">{{ disclaimer }}</p>
+{% endblock %}
